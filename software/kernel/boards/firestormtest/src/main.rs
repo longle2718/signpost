@@ -377,11 +377,11 @@ pub unsafe fn reset_handler() {
         signpost_drivers::smbus_interrupt::SMBUSInterrupt<'static>,
         // Make sure to replace "None" below with gpio used as SMBUS Alert
         // Some(&sam4l::gpio::PA[16]) for instance
-        signpost_drivers::smbus_interrupt::SMBUSInterrupt::new(smbusint_i2c, None, &mut signpost_drivers::smbus_interrupt::BUFFER),
-        32);
+        signpost_drivers::smbus_interrupt::SMBUSInterrupt::new(smbusint_i2c, Some(&sam4l::gpio::PA[16]) , &mut signpost_drivers::smbus_interrupt::BUFFER),
+        288/8);
 
     smbusint_i2c.set_client(smbusint);
-    // &sam4l::gpio::PA[16].set_client(smbusint); for instance
+    &sam4l::gpio::PA[16].set_client(smbusint);
 
     let smbusint_driver = static_init!(
         signpost_drivers::smbus_interrupt::SMBUSIntDriver<'static>,
@@ -491,8 +491,8 @@ pub unsafe fn reset_handler() {
         32);
     let pca9544a_0 = static_init!(
         signpost_drivers::pca9544a::PCA9544A<'static>,
-        signpost_drivers::pca9544a::PCA9544A::new(pca9544a_0_i2c, None, &mut signpost_drivers::pca9544a::BUFFER),
-        320/8);
+        signpost_drivers::pca9544a::PCA9544A::new(pca9544a_0_i2c, &mut signpost_drivers::pca9544a::BUFFER),
+        256/8);
     pca9544a_0_i2c.set_client(pca9544a_0);
 
     let pca9544a_1_i2c = static_init!(
@@ -501,8 +501,8 @@ pub unsafe fn reset_handler() {
         32);
     let pca9544a_1 = static_init!(
         signpost_drivers::pca9544a::PCA9544A<'static>,
-        signpost_drivers::pca9544a::PCA9544A::new(pca9544a_1_i2c, None, &mut signpost_drivers::pca9544a::BUFFER),
-        320/8);
+        signpost_drivers::pca9544a::PCA9544A::new(pca9544a_1_i2c, &mut signpost_drivers::pca9544a::BUFFER),
+        256/8);
     pca9544a_1_i2c.set_client(pca9544a_1);
 
     // Create an array of the I2C selectors so we can give them a single interface
@@ -584,9 +584,9 @@ pub unsafe fn reset_handler() {
     // Remaining GPIO pins
     //
     let gpio_pins = static_init!(
-        [&'static sam4l::gpio::GPIOPin; 12],
+        [&'static sam4l::gpio::GPIOPin; 11],
         [&sam4l::gpio::PC[10], // LED_0
-         &sam4l::gpio::PA[16], // P2
+         //&sam4l::gpio::PA[16], // P2
          &sam4l::gpio::PA[12], // P3
          &sam4l::gpio::PC[9], // P4
          &sam4l::gpio::PA[10], // P5
@@ -597,7 +597,7 @@ pub unsafe fn reset_handler() {
          &sam4l::gpio::PC[14], /* RSLP (RF233 sleep line) */
          &sam4l::gpio::PC[15], /* RRST (RF233 reset line) */
          &sam4l::gpio::PA[20]], /* RIRQ (RF233 interrupt) */
-        12 * 4
+        11 * 4
     );
     let gpio = static_init!(
         capsules::gpio::GPIO<'static, sam4l::gpio::GPIOPin>,
