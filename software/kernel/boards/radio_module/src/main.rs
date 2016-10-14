@@ -13,6 +13,7 @@ extern crate signpost_drivers;
 extern crate signpost_hil;
 
 use capsules::console::{self, Console};
+use capsules::nrf51822_serialization::{self, Nrf51822Serialization};
 use capsules::timer::TimerDriver;
 use capsules::virtual_alarm::{MuxAlarm, VirtualMuxAlarm};
 use kernel::hil::Controller;
@@ -73,6 +74,8 @@ struct RadioModule {
     timer: &'static TimerDriver<'static, VirtualMuxAlarm<'static, sam4l::ast::Ast>>,
     coulomb_counter_i2c_selector: &'static signpost_drivers::i2c_selector::I2CSelector<'static, signpost_drivers::pca9544a::PCA9544A<'static>>,
     coulomb_counter_generic: &'static signpost_drivers::ltc2941::LTC2941Driver<'static>,
+	nrf51822: &'static Nrf51822Serialization<'static, usart::USART>,
+	i2c_master_slave: &'static signpost_drivers::i2c_master_slave_driver::I2CMasterSlaveDriver<'static>,
 }
 
 impl Platform for RadioModule {
@@ -84,8 +87,10 @@ impl Platform for RadioModule {
             0 => f(Some(self.console)),
             1 => f(Some(self.gpio)),
             3 => f(Some(self.timer)),
+            5 => f(Some(self.nrf51822)),
             101 => f(Some(self.coulomb_counter_i2c_selector)),
             102 => f(Some(self.coulomb_counter_generic)),
+            105 => f(Some(self.i2c_master_slave)),
             _ => f(None)
         }
     }
@@ -164,7 +169,7 @@ pub unsafe fn reset_handler() {
     set_pin_primary_functions();
 
     //
-    // UART console
+    // UART console (currently being used for lora - probably should fix
     //
     let console = static_init!(
         Console<usart::USART>,
@@ -174,6 +179,14 @@ pub unsafe fn reset_handler() {
                      kernel::Container::create()),
         256/8);
     usart::USART2.set_uart_client(console);
+
+	let nrf_serialization = static_init!(
+		Nrf51822Serialization<usart::USART>,
+		Nrf51822Serialization::new(&usart::USART3,
+									&mut nrf51822_serialization::WRITE_BUF,
+									&mut nrf51822_serialization::READ_BUF),
+		608/8);
+	usart::USART3.set_uart_client(nrf_serialization);
 
 
     //
@@ -200,6 +213,18 @@ pub unsafe fn reset_handler() {
     //
     // I2C Buses
     //
+	let i2c_modules = static_init!(
+		signpost_drivers::i2c_master_slave_driver::I2CMasterSlaveDriver<'static>,
+		signpost_drivers::i2c_master_slave_driver::I2CMasterSlaveDriver::new(&sam4l::i2c::I2C1,
+			&mut signpost_drivers::i2c_master_slave_driver::BUFFER1,
+			&mut signpost_drivers::i2c_master_slave_driver::BUFFER2,
+			&mut signpost_drivers::i2c_master_slave_driver::BUFFER3),
+		928/8);
+	sam4l::i2c::I2C1.set_master_client(i2c_modules);
+	sam4l::i2c::I2C1.set_slave_client(i2c_modules);
+
+	//hil::i2c::I2CSlave::set_address(&sam4l::i2c::I2C1, 0x22);
+
 
     //some declaration of an i2c slave that I don't know how to do yet
 
@@ -339,10 +364,17 @@ pub unsafe fn reset_handler() {
             timer: timer,
             coulomb_counter_i2c_selector: i2c_selector,
             coulomb_counter_generic: ltc2941_driver,
+			nrf51822: nrf_serialization,
+			i2c_master_slave: i2c_modules,
         },
-        160/8);
+        224/8);
+
+	sam4l::gpio::PB[06].enable();
+	sam4l::gpio::PB[06].enable_output();
+	sam4l::gpio::PB[06].clear();
 
     radio_module.console.initialize();
+	radio_module.nrf51822.initialize();
 
     let mut chip = sam4l::chip::Sam4l::new();
     chip.mpu().enable_mpu();
