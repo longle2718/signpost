@@ -18,7 +18,7 @@
 #include "tock.h"
 #include "console.h"
 #include "timer.h"
-#include "iM880A_RadioInterface.h"
+//#include "iM880A_RadioInterface.h"
 #include "i2c_master_slave.h"
 #include "app_watchdog.h"
 #include "radio_module.h"
@@ -64,14 +64,14 @@ static uint8_t address[ADDRESS_SIZE] = { COMPILE_TIME_ADDRESS };
 
 //these are the lora callback functions for seeing if everything is okay
 
-void lora_rx_callback(uint8_t* payload __attribute__ ((unused)),
+/*void lora_rx_callback(uint8_t* payload __attribute__ ((unused)),
                         uint8_t len __attribute__ ((unused)),
                         TRadioFlags flag __attribute__ ((unused))) {
     //this should never happen because I'm not receiving
 //    putstr("Lora received a message?\n");
-}
+}*/
 
-void lora_tx_callback(TRadioMsg* message __attribute__ ((unused)),
+/*void lora_tx_callback(TRadioMsg* message __attribute__ ((unused)),
                         uint8_t status) {
     //right now the  radio library ONLY implements txdone messages
     if(status == DEVMGMT_STATUS_OK) {
@@ -80,7 +80,7 @@ void lora_tx_callback(TRadioMsg* message __attribute__ ((unused)),
         putstr("Lora error, resetting...");
         app_watchdog_reset_app();
     }
-}
+}*/
 
 static void adv_config_data() {
     static uint8_t i = 0;
@@ -213,16 +213,15 @@ static void timer_callback (
     if(data_to_send[i][0] != 0x00) {
 
         //before we send this packet, make sure the last one completed
-        if(lora_last_packets_sent == lora_packets_sent) {
+  /*    if(lora_last_packets_sent == lora_packets_sent) {
             //error
             putstr("lora error! Reseting..\n");
             app_watchdog_reset_app();
         } else {
             lora_last_packets_sent = lora_packets_sent;
-        }
+        }*/
 
         //increment the packet counter for this slot
-        // //don't meta count packets sent packets
         uint16_t packets = (uint16_t)((data_to_send[7][3+i*2+1]) + (data_to_send[7][3+i*2] << 8));
         packets++;
         data_to_send[7][3+i*2] = (uint8_t)((packets >> 8) & 0xff);
@@ -232,14 +231,14 @@ static void timer_callback (
         //send the packet
         memcpy(LoRa_send_buffer, address, ADDRESS_SIZE);
         memcpy(LoRa_send_buffer+ADDRESS_SIZE, data_to_send[i], BUFFER_SIZE);
-        uint16_t status = iM880A_SendRadioTelegram(LoRa_send_buffer,BUFFER_SIZE+ADDRESS_SIZE);
+        //uint16_t status = iM880A_SendRadioTelegram(LoRa_send_buffer,BUFFER_SIZE+ADDRESS_SIZE);
 
         //parse the HCI layer error codes
-        if(status != 0) {
+        /*if(status != 0) {
             //error
             putstr("lora error! Resetting...\n");
             app_watchdog_reset_app();
-        }
+        }*/
     }
 
     if(i == NUMBER_OF_MODULES-1) {
@@ -289,10 +288,10 @@ int main () {
 
     //setup lora
     //register radio callbacks
-    iM880A_Init();
-    iM880A_RegisterRadioCallbacks(lora_rx_callback, lora_tx_callback);
+    //iM880A_Init();
+    //iM880A_RegisterRadioCallbacks(lora_rx_callback, lora_tx_callback);
     //configure
-    iM880A_Configure();
+    //iM880A_Configure();
 
     //low configure i2c slave to listen
     i2c_master_slave_set_callback(i2c_master_slave_callback, NULL);
