@@ -20,6 +20,7 @@ use kernel::hil::Controller;
 use kernel::{Chip, MPU, Platform};
 use sam4l::adc;
 use sam4l::usart;
+use sam4l::trng;
 
 // For panic!()
 #[macro_use]
@@ -76,6 +77,7 @@ struct AudioModule {
     adc: &'static capsules::adc::ADC<'static, sam4l::adc::Adc>,
     app_watchdog: &'static signpost_drivers::app_watchdog::AppWatchdog<'static, VirtualMuxAlarm<'static, sam4l::ast::Ast<'static>>>,
     ipc: kernel::ipc::IPC,
+    rng: &'static signpost_drivers::rng::SimpleRng<'static, sam4l::trng::Trng<'static>>,
 }
 
 impl Platform for AudioModule {
@@ -91,6 +93,7 @@ impl Platform for AudioModule {
             13 => f(Some(self.i2c_master_slave)),
 
             108 => f(Some(self.app_watchdog)),
+            111 => f(Some(self.rng)),
 
             0xff => f(Some(&self.ipc)),
             _ => f(None)
@@ -192,14 +195,23 @@ pub unsafe fn reset_handler() {
     sam4l::i2c::I2C0.set_master_client(i2c_master_slave);
     sam4l::i2c::I2C0.set_slave_client(i2c_master_slave);
 
-	//
-	//ADC
-	//
-	let adc_driver = static_init!(
-		capsules::adc::ADC<'static, sam4l::adc::Adc>,
-		capsules::adc::ADC::new(&adc::ADC),
-		160/8);
-	adc::ADC.set_client(adc_driver);
+    //
+    //ADC
+    //
+    let adc_driver = static_init!(
+        capsules::adc::ADC<'static, sam4l::adc::Adc>,
+        capsules::adc::ADC::new(&adc::ADC),
+        160/8);
+    adc::ADC.set_client(adc_driver);
+
+    //
+    // RNG
+    //
+    let rng_driver = static_init!(
+        signpost_drivers::rng::SimpleRng<'static, trng::Trng>,
+        signpost_drivers::rng::SimpleRng::new(&trng::TRNG),
+        352/8);
+    trng::TRNG.set_client(rng_driver);
 
     //
     // Remaining GPIO pins
@@ -285,6 +297,7 @@ pub unsafe fn reset_handler() {
         adc: adc_driver,
         app_watchdog: app_watchdog,
         ipc: kernel::ipc::IPC::new(),
+        rng: rng_driver,
     };
 
     audio_module.console.initialize();
