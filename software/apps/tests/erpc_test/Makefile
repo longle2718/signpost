@@ -2,7 +2,7 @@
 
 # the current directory
 APP_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-LIBS_DIR := ../libs/
+LIBS_DIR := ../../libs/
 
 # files needed for this code
 APP_SRCS   += test_arithmetic_client.cpp
@@ -48,5 +48,5 @@ ERPC_SRCS := $(wildcard *.erpc)
 TOCK_BOARD = controller
 
 # include makefile settings that are shared between applications
-include ../AppMakefile.mk
+include ../../AppMakefile.mk
 
