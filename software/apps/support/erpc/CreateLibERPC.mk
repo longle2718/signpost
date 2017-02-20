@@ -15,6 +15,14 @@ $(BUILDDIR)/liberpc.a:
 # We leverage Make's VPATH to allow us to just specify the source files we need
 # as if they were local. We list sources here by where they came from for clarity
 
+# Grab Signpost build rules
+include ../../AppMakefile.mk
+
+# Clear out any variables we don't want
+C_SRCS :=
+CXX_SRCS :=
+OBJS :=
+
 VPATH += erpc/erpc_c/infra/
 CXXFLAGS += -Ierpc/erpc_c/infra
 CXX_SRCS += basic_codec.cpp
@@ -37,10 +45,10 @@ CXXFLAGS += -Ierpc/erpc_c/port/
 #VPATH += erpc/erpc_c/config/
 CXXFLAGS += -Ierpc/erpc_c/config/
 
-# Grab Signpost build rules
-include ../../AppMakefile.mk
+OBJS += $(patsubst %.cpp,$(BUILDDIR)/%.o,$(filter %.cpp, $(CXX_SRCS)))
 
 # Now that all the needed variables are set, write our actual build rule
 $(BUILDDIR)/liberpc.a: $(OBJS) | $(BUILDDIR)
+	@echo $(OBJS)
 	$(AR) rc $@ $^
 	$(RANLIB) $@
