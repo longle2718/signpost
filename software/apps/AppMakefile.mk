@@ -44,37 +44,35 @@ include $(TOCK_USERLAND_BASE_DIR)/Makefile
 CPPFLAGS += -Wno-suggest-attribute=pure -Wno-suggest-attribute=const
 CPPFLAGS += -Wno-unused-macros
 
-### WIP: At some point when Josh gets erpc building at all, you'll want most of this
-###
-### # eRPC tool
-### ERPCGEN ?= $(CURRENT_DIR)support/bin/erpcgen
-### 
-### # Note: *must* be after includin main tock makefiles to pick up all our flags
-### # for when erpc_c is built
-### $(CURRENT_DIR)support/bin/erpcgen:
-### 	$(MAKE) -C $(CURRENT_DIR)support/erpc/erpcgen
-### ifdef V
-### 	$(MAKE) -C $(CURRENT_DIR)support/erpc/erpc_c CFLAGS="$(CFLAGS) $(CPPFLAGS)" CXXFLAGS="$(CXXFLAGS) $(CPPFLAGS)" CC=$(CC) CXX=$(CXX) VERBOSE=1
-### else
-### 	$(MAKE) -C $(CURRENT_DIR)support/erpc/erpc_c CFLAGS="$(CFLAGS) $(CPPFLAGS)" CXXFLAGS="$(CXXFLAGS) $(CPPFLAGS)" CC=$(CC) CXX=$(CXX)
-### endif
-### 	$(MAKE) -C $(CURRENT_DIR)support/erpc PREFIX=$(CURRENT_DIR)support install
-### 
-### ERPC_BUILDDIR := $(BUILDDIR)/erpc
-### ERPC_C_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.c,$(ERPC_SRCS))
-### ERPC_H_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.h,$(ERPC_SRCS))
-### 
-### $(ERPC_C_SRCS): | $(ERPC_BUILDDIR)
-### 
-### CFLAGS += -I$(ERPC_BUILDDIR)
-### 
-### $(ERPC_BUILDDIR):
-### 	@mkdir -p $(ERPC_BUILDDIR)
-### 
-### $(ERPC_H_SRCS): $(ERPC_BUILDDIR)/%.h: %.erpc	| $(ERPCGEN)
-### 	$(ERPCGEN) -o $(ERPC_BUILDDIR) $<
-### 
-### $(C_SRCS):	| $(ERPC_H_SRCS)
+#WIP: At some point when Josh gets erpc building at all, you'll want most of this
+
+# eRPC tool
+ERPCGEN ?= $(CURRENT_DIR)libs/bin/erpcgen
+
+# Note: *must* be after includin main tock makefiles to pick up all our flags
+# for when erpc_c is built
+$(CURRENT_DIR)libs/erpc/bin/erpcgen:
+	@mkdir -p $(CURRNET_DIR)/libs/erpc/bin
+	$(MAKE) -C $(CURRENT_DIR)libs/erpc/erpcgen CC=gcc CXX=g++ PREFIX=$(CURRENT_DIR)libs/erpc/ install
+
+ERPC_BUILDDIR := $(BUILDDIR)/erpc
+ERPC_C_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.c,$(ERPC_SRCS))
+ERPC_CXX_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.cpp,$(ERPC_SRCS))
+ERPC_H_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.h,$(ERPC_SRCS))
+
+$(ERPC_C_SRCS): | $(ERPC_BUILDDIR)
+
+CPPFLAGS += -I$(ERPC_BUILDDIR)
+C_SRC += ERPC_C_SRCS
+CXX_SRC += ERPC_CXX_SRCS
+
+$(ERPC_BUILDDIR):
+	@mkdir -p $(ERPC_BUILDDIR)
+
+$(ERPC_H_SRCS): $(ERPC_BUILDDIR)/%.h: %.erpc	| $(ERPCGEN)
+	$(ERPCGEN) -o $(ERPC_BUILDDIR) $<
+
+$(C_SRCS):	| $(ERPC_H_SRCS)
 
 ### ADD TO CLEAN
 ###	$(MAKE) -C $(CURRENT_DIR)support/erpc PREFIX=$(CURRENT_DIR)support clean
