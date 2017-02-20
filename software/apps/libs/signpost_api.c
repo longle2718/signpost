@@ -304,12 +304,67 @@ int signpost_storage_write_reply(uint8_t destination_address, uint8_t* record_po
 }
 
 /**************************************************************************/
+/* PROCESSING API                                                         */
+/**************************************************************************/
+static bool processing_ready;
+static void signpost_processing_callback(int result){
+    processing_ready = true;
+}
+int signpost_processing_init(const char* path) {
+    //form the sending message
+    uint16_t size = strlen(path);
+    uint8_t buf[size + 2];
+    buf[0] = size & 0xff;
+    buf[1] = ((size & 0xff00) > 8);
+
+    memcpy(buf+2,path,size);
+
+    incoming_active_callback = signpost_processing_callback;
+    processing_ready = false;
+
+    signpost_api_send(ModuleAddressStorage,  CommandFrame,
+             ProcessingApiType, ProcessingInitMessage, size+2, buf);
+
+    //wait for a response
+    yield_for(&processing_ready);
+
+    return incoming_message[0];
+}
+
+int signpost_processing_oneway_send(uint8_t* buf, uint16_t len) {
+
+    //form the sending message
+    /*uint16_t size = strlen(path);
+    uint8_t buf[size + 2];
+    buf[0] = size & 0xff;
+    buf[1] = ((size & 0xff00) > 8);
+
+    memcpy(buf+2,path,size);
+
+    incoming_active_callback = signpost_processing_callback;
+    processing_ready = false;
+
+    signpost_api_send(ModuleAddressStorage,  CommandFrame,
+             ProcessingApiType, ProcessingInitMessage, size+2, buf);
+
+    //wait for a response
+    yield_for(&processing_ready);
+
+    return incoming_message[0];&*/
+}
+
+int signpost_processing_twoway_send(uint8_t* buf, uint16_t len) {
+
+}
+
+int signpost_processing_twoway_receive(uint8_t* buf, uint16_t* len) {
+
+}
+
+/**************************************************************************/
 /* NETWORKING API                                                         */
 /**************************************************************************/
 
-/**************************************************************************/
-/* PROCESSING API                                                         */
-/**************************************************************************/
 
 static bool networking_ready;
 static bool networking_result;
@@ -485,7 +540,6 @@ int signpost_networking_post(const char* url, http_request request, http_respons
     } else {
         memcpy(response->body,b+i,response->body_len);
     }
-
 
     return 0;
 }

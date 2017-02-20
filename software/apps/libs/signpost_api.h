@@ -116,7 +116,23 @@ int signpost_networking_post_reply(uint8_t src_addr, uint8_t* response, uint16_t
 /* PROCESSING API                                                         */
 /**************************************************************************/
 
-// XXX Placeholder
+enum processing_return_type {
+    ProcessingSuccess = 0,
+    ProcessingNotExist = 1,
+};
+
+enum processing_message_type {
+    ProcessingInitMessage = 0,
+    ProcessingOneWayMessage = 1,
+    ProcessingTwoWayMessage = 2,
+};
+
+//the edison path to the python module for servicing the rpc
+int signpost_processing_init(const char* path);
+
+int signpost_processing_oneway_send(uint8_t* buf, uint16_t len);
+int signpost_processing_twoway_send(uint8_t* buf, uint16_t len);
+int signpost_processing_twoway_receive(uint8_t* buf, uint16_t* len);
 
 /**************************************************************************/
 /* ENERGY API                                                             */
