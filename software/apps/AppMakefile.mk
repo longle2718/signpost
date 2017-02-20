@@ -55,6 +55,8 @@ ERPCGEN ?= $(CURRENT_DIR)libs/erpc/bin/erpcgen
 # Note: *must* be after includin main tock makefiles to pick up all our flags
 # for when erpc_c is built
 $(CURRENT_DIR)libs/erpc/bin/erpcgen:
+	@hash flex || (echo "Missing required dependency flex. Please install." && exit 1)
+	@hash bison || (echo "Missing required dependency bison. Please install." && exit 1)
 	@mkdir -p $(CURRENT_DIR)/libs/erpc/bin
 	$(MAKE) -C $(CURRENT_DIR)libs/erpc/erpcgen CC=gcc CXX=g++ PREFIX=$(CURRENT_DIR)libs/erpc/ install
 
