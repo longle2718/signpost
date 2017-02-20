@@ -39,8 +39,9 @@ VPATH += erpc/erpc_c/transports/
 CXXFLAGS += -Ierpc/erpc_c/transports/
 CXX_SRCS += i2c_master_slave_transport.cpp
 
-#VPATH += erpc/erpc_c/port/
+VPATH += erpc/erpc_c/port/
 CXXFLAGS += -Ierpc/erpc_c/port/
+CXX_SRCS += minimal_port_lab11.cpp
 
 #VPATH += erpc/erpc_c/config/
 CXXFLAGS += -Ierpc/erpc_c/config/
