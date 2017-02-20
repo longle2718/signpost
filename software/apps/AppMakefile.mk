@@ -9,6 +9,8 @@ TOCK_ARCH := cortex-m4
 
 CURRENT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+SIGNPOST_BASE_DIR := $(abspath $(CURRENT_DIR))
+
 TOCK_USERLAND_BASE_DIR := $(abspath $(CURRENT_DIR)/../kernel/tock/userland/)
 TOCK_BASE_DIR := $(abspath $(CURRENT_DIR)/../kernel/tock/)
 BUILDDIR ?= $(abspath $(APP_DIR)/build/$(TOCK_ARCH))
@@ -38,20 +40,14 @@ include $(LIBSIGNPOST_DIR)/Makefile
 
 
 
-#WIP: At some point when Josh gets erpc building at all, you'll want most of this
-
 # eRPC tool
-ERPCGEN ?= $(CURRENT_DIR)libs/erpc/bin/erpcgen
+ERPCGEN := $(CURRENT_DIR)support/erpc/bin/erpcgen
+OBJS += $(CURRENT_DIR)support/erpc/liberpc/$(TOCK_ARCH)/liberpc.a
+include $(CURRENT_DIR)support/erpc/AppLibERPC.mk
 
-# Note: *must* be before main tock makefiles so our added sources work
-$(CURRENT_DIR)libs/erpc/bin/erpcgen:
-	@hash flex || (echo "Missing required dependency flex. Please install." && exit 1)
-	@hash bison || (echo "Missing required dependency bison. Please install." && exit 1)
-	@mkdir -p $(CURRENT_DIR)/libs/erpc/bin
-	$(MAKE) -C $(CURRENT_DIR)libs/erpc/erpcgen CC=gcc CXX=g++ PREFIX=$(CURRENT_DIR)libs/erpc/ install
-
-ERPC_BUILDDIR := build/$(TOCK_ARCH)/erpc
-ERPC_CXX_SRCS += $(patsubst %.erpc,%.cpp,$(ERPC_SRCS))
+ERPC_BUILDDIR := build/erpc
+ERPC_CXX_SRCS += $(patsubst %.erpc,%_client.cpp,$(ERPC_SRCS))
+ERPC_CXX_SRCS += $(patsubst %.erpc,%_server.cpp,$(ERPC_SRCS))
 ERPC_H_SRCS   += $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.h,$(ERPC_SRCS))
 
 VPATH += $(ERPC_BUILDDIR)
@@ -70,9 +66,6 @@ $(ERPC_H_SRCS): $(ERPC_BUILDDIR)/%.h: %.erpc	| $(ERPCGEN)
 $(C_SRCS):	| $(ERPC_H_SRCS)
 
 $(CXX_SRCS):	| $(ERPC_H_SRCS)
-
-### ADD TO CLEAN
-###	$(MAKE) -C $(CURRENT_DIR)support/erpc PREFIX=$(CURRENT_DIR)support clean
 
 
 
