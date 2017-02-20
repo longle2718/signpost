@@ -17,12 +17,18 @@ APP_SRCS   += erpc_setup_i2c_master_slave.cpp
 #APP_SRCS   += serial_transport.cpp
 APP_SRCS   += i2c_master_slave_transport.cpp
 				
-INCLUDE_PATHS += .
-INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/infra/
-INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/setup/
-INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/transports/
-INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/port/
-INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/config/
+#INCLUDE_PATHS += .
+#INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/infra/
+#INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/setup/
+#INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/transports/
+#INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/port/
+#INCLUDE_PATHS += $(LIBS_DIR)erpc/erpc_c/config/
+
+CPPFLAGS += -I$(LIBS_DIR)erpc/erpc_c/infra/
+CPPFLAGS += -I$(LIBS_DIR)erpc/erpc_c/setup/
+CPPFLAGS += -I$(LIBS_DIR)erpc/erpc_c/transports/
+CPPFLAGS += -I$(LIBS_DIR)erpc/erpc_c/port/
+CPPFLAGS += -I$(LIBS_DIR)erpc/erpc_c/config/
 
 SOURCE_PATHS += .
 SOURCE_PATHS += $(LIBS_DIR)erpc/erpc_c/infra/
@@ -35,7 +41,7 @@ VPATH=$(SOURCE_PATHS)
 
 C_SRCS   := $(wildcard *.c)
 
-CXX_SRCS  := $(notdir $(APP_SRCS))
+CXX_SRCS  := $(wildcard *.cpp) $(APP_SRCS)
 
 ERPC_SRCS := $(wildcard *.erpc)
 

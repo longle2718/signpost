@@ -35,15 +35,6 @@ include $(LIBSIGNPOST_DIR)/Makefile
 # include mbedtls library makefile
 #include $(LIBMBEDTLS_LIB_DIR)Makefile
 
-# include userland master makefile. Contains rules and flags for actually
-# 	building the application
-include $(TOCK_USERLAND_BASE_DIR)/Makefile
-
-# XXX(Pat)
-# Turn off some of the less critical warnings while we're developing heavily
-CPPFLAGS += -Wno-suggest-attribute=pure -Wno-suggest-attribute=const
-CPPFLAGS += -Wno-unused-macros
-
 
 
 
@@ -52,23 +43,22 @@ CPPFLAGS += -Wno-unused-macros
 # eRPC tool
 ERPCGEN ?= $(CURRENT_DIR)libs/erpc/bin/erpcgen
 
-# Note: *must* be after includin main tock makefiles to pick up all our flags
-# for when erpc_c is built
+# Note: *must* be before main tock makefiles so our added sources work
 $(CURRENT_DIR)libs/erpc/bin/erpcgen:
 	@hash flex || (echo "Missing required dependency flex. Please install." && exit 1)
 	@hash bison || (echo "Missing required dependency bison. Please install." && exit 1)
 	@mkdir -p $(CURRENT_DIR)/libs/erpc/bin
 	$(MAKE) -C $(CURRENT_DIR)libs/erpc/erpcgen CC=gcc CXX=g++ PREFIX=$(CURRENT_DIR)libs/erpc/ install
 
-ERPC_BUILDDIR := $(BUILDDIR)/erpc
-ERPC_C_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.c,$(ERPC_SRCS))
-ERPC_CXX_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.cpp,$(ERPC_SRCS))
-ERPC_H_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.h,$(ERPC_SRCS))
+ERPC_BUILDDIR := build/$(TOCK_ARCH)/erpc
+ERPC_CXX_SRCS += $(patsubst %.erpc,%.cpp,$(ERPC_SRCS))
+ERPC_H_SRCS   += $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.h,$(ERPC_SRCS))
 
-$(ERPC_C_SRCS): | $(ERPC_BUILDDIR)
+VPATH += $(ERPC_BUILDDIR)
+
+$(ERPC_CXX_SRCS): | $(ERPC_BUILDDIR)
 
 CPPFLAGS += -I$(ERPC_BUILDDIR)
-C_SRCS += $(ERPC_C_SRCS)
 CXX_SRCS += $(ERPC_CXX_SRCS)
 
 $(ERPC_BUILDDIR):
@@ -85,6 +75,15 @@ $(CXX_SRCS):	| $(ERPC_H_SRCS)
 ###	$(MAKE) -C $(CURRENT_DIR)support/erpc PREFIX=$(CURRENT_DIR)support clean
 
 
+
+# include userland master makefile. Contains rules and flags for actually
+# 	building the application
+include $(TOCK_USERLAND_BASE_DIR)/Makefile
+
+# XXX(Pat)
+# Turn off some of the less critical warnings while we're developing heavily
+CPPFLAGS += -Wno-suggest-attribute=pure -Wno-suggest-attribute=const
+CPPFLAGS += -Wno-unused-macros
 
 
 # add platform-specific headers
