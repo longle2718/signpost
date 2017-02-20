@@ -34,9 +34,10 @@ SOURCE_PATHS += $(LIBS_DIR)erpc/erpc_c/config/
 VPATH=$(SOURCE_PATHS)
 
 C_SRCS   := $(wildcard *.c)
-#C_SRCS   += i2c_master_slave.c
 
 CXX_SRCS  := $(notdir $(APP_SRCS))
+
+ERPC_SRCS := $(wildcard *.erpc)
 
 TOCK_BOARD = controller
 

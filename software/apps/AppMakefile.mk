@@ -44,15 +44,18 @@ include $(TOCK_USERLAND_BASE_DIR)/Makefile
 CPPFLAGS += -Wno-suggest-attribute=pure -Wno-suggest-attribute=const
 CPPFLAGS += -Wno-unused-macros
 
+
+
+
 #WIP: At some point when Josh gets erpc building at all, you'll want most of this
 
 # eRPC tool
-ERPCGEN ?= $(CURRENT_DIR)libs/bin/erpcgen
+ERPCGEN ?= $(CURRENT_DIR)libs/erpc/bin/erpcgen
 
 # Note: *must* be after includin main tock makefiles to pick up all our flags
 # for when erpc_c is built
 $(CURRENT_DIR)libs/erpc/bin/erpcgen:
-	@mkdir -p $(CURRNET_DIR)/libs/erpc/bin
+	@mkdir -p $(CURRENT_DIR)/libs/erpc/bin
 	$(MAKE) -C $(CURRENT_DIR)libs/erpc/erpcgen CC=gcc CXX=g++ PREFIX=$(CURRENT_DIR)libs/erpc/ install
 
 ERPC_BUILDDIR := $(BUILDDIR)/erpc
@@ -63,8 +66,8 @@ ERPC_H_SRCS := $(patsubst %.erpc,$(ERPC_BUILDDIR)/%.h,$(ERPC_SRCS))
 $(ERPC_C_SRCS): | $(ERPC_BUILDDIR)
 
 CPPFLAGS += -I$(ERPC_BUILDDIR)
-C_SRC += ERPC_C_SRCS
-CXX_SRC += ERPC_CXX_SRCS
+C_SRCS += ERPC_C_SRCS
+CXX_SRCS += ERPC_CXX_SRCS
 
 $(ERPC_BUILDDIR):
 	@mkdir -p $(ERPC_BUILDDIR)
@@ -74,8 +77,13 @@ $(ERPC_H_SRCS): $(ERPC_BUILDDIR)/%.h: %.erpc	| $(ERPCGEN)
 
 $(C_SRCS):	| $(ERPC_H_SRCS)
 
+$(CXX_SRCS):	| $(ERPC_H_SRCS)
+
 ### ADD TO CLEAN
 ###	$(MAKE) -C $(CURRENT_DIR)support/erpc PREFIX=$(CURRENT_DIR)support clean
+
+
+
 
 # add platform-specific headers
 .PHONY: clean
