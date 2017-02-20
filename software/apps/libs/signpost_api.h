@@ -119,6 +119,8 @@ int signpost_networking_post_reply(uint8_t src_addr, uint8_t* response, uint16_t
 enum processing_return_type {
     ProcessingSuccess = 0,
     ProcessingNotExist = 1,
+    ProcessingSizeError = 2,
+    ProcessingCRCError = 3,
 };
 
 enum processing_message_type {
