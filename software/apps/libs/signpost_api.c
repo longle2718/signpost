@@ -308,7 +308,7 @@ int signpost_storage_write_reply(uint8_t destination_address, uint8_t* record_po
 /* PROCESSING API                                                         */
 /**************************************************************************/
 static bool processing_ready;
-static void signpost_processing_callback(int result){
+static void signpost_processing_callback(__attribute__((unused)) int result){
     processing_ready = true;
 }
 int signpost_processing_init(const char* path) {
@@ -335,7 +335,7 @@ int signpost_processing_init(const char* path) {
 int signpost_processing_oneway_send(uint8_t* buf, uint16_t len) {
 
     //form the sending message
-    uint16_t crc  = computCRC16(buf,len);
+    uint16_t crc  = computeCRC16(buf,len);
     uint8_t b[len + 4];
     b[0] = len & 0xff;
     b[1] = ((len & 0xff00) > 8);
@@ -359,7 +359,7 @@ int signpost_processing_oneway_send(uint8_t* buf, uint16_t len) {
 
 int signpost_processing_twoway_send(uint8_t* buf, uint16_t len) {
     //form the sending message
-    uint16_t crc  = computCRC16(buf,len);
+    uint16_t crc  = computeCRC16(buf,len);
     uint8_t b[len + 4];
     b[0] = len & 0xff;
     b[1] = ((len & 0xff00) > 8);
