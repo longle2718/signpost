@@ -1,7 +1,11 @@
-#pragma once
+#ifndef SIGNPOST_API_H
+#define SIGNPOST_API_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
-
 #include "signbus_app_layer.h"
 #include "signbus_protocol_layer.h"
 
@@ -202,3 +206,8 @@ typedef enum {
     EdisonReadRPCMessage = 1,
 } signpost_edison_message_type_e;
 
+#ifdef __cplusplus
+}
+#endif
+
+#endif
