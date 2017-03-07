@@ -21,6 +21,8 @@
 #include "ridgeTracker.h"
 
 static int freqAnalyze(kiss_fft_scalar *frame, kiss_fft_scalar *spec);
+static int printMat(char *filename, kiss_fft_scalar *in, size_t N);
+static int printMat2(char *filename, size_t *in, size_t N);
 
 int main (void) {
     int err = SUCCESS;
@@ -41,13 +43,16 @@ int main (void) {
     ridgeTracker_init();
     while (true) {
         // read data from ADC
-        err = adc_read_single_sample(3);
-        if (err < SUCCESS) {
-            printf("ADC read error: %d\n", err);
+        for (size_t k = frameIdx; k < frameIdx+INC_LEN; k++){
+            err = adc_read_single_sample(3);
+            if (err < SUCCESS) {
+                printf("ADC read error: %d\n", err);
+            }
+            uint16_t sample = err & 0xFFFF;
+            frame[k] = (kiss_fft_scalar)sample;
         }
-        uint16_t sample = err & 0xFFFF;
-
         frameIdx = (frameIdx+INC_LEN) % BUF_LEN;
+
         // perform FFT
         if (freqAnalyze(frame, spec)){
             printf("freqAnalyze() failed!\n");
@@ -56,7 +61,39 @@ int main (void) {
 
         // ridgetracker update
         ridgeTracker_update(spec, snrOut);
+
+        // check for available event
+        if (ridgeTracker_isReady){
+            printf("Event detected!\n");
+            printf("ridgeTracker_out.used =  %zu\n",ridgeTracker_out.used);
+
+            if (printMat("SNR.mat",ridgeTracker_out.SNR,ridgeTracker_out.used)){
+                printf("printMat() failed!\n");
+                return 1;
+            }
+            if (printMat2("FI.mat",ridgeTracker_out.FI,ridgeTracker_out.used)){
+                printf("printMat2() failed!\n");
+                return 1;
+            }
+            size_t TIE = ridgeTracker_out.TI[ridgeTracker_out.used-1];
+            for (size_t k=0; k<ridgeTracker_out.used; k++){
+                ridgeTracker_out.TI[k] = globTI-(TIE-ridgeTracker_out.TI[k]);
+            }
+            if (printMat2("TI.mat",ridgeTracker_out.TI,ridgeTracker_out.used)){
+                printf("printMat2() failed!\n");
+                return 1;
+            }
+
+            ridgeTracker_reset();
+        }
+        globTI += 1;
     }
+
+    ridgeTracker_destroy();
+
+    printf("Done!\n");
+    fflush(stdout);
+    return 0;
 }
 
 static int freqAnalyze(kiss_fft_scalar *frame, kiss_fft_scalar *spec){
@@ -84,5 +121,41 @@ static int freqAnalyze(kiss_fft_scalar *frame, kiss_fft_scalar *spec){
         spec[k] = MAG(out[k].r,out[k].i);
     }
 
+    return 0;
+}
+
+static int printMat(char *filename, kiss_fft_scalar *in, size_t N){
+    FILE *fp;
+
+    if (! (fp = fopen(filename, "a"))){
+        printf("Unable to open %s\n",filename);
+        return 1;
+    }
+
+    for (size_t i = 0; i < N-1; i++){
+        //fprintf(fp, "%d,",in[i]);
+        fprintf(fp, "%f,",(double)in[i]/(double)SAMP_MAX);
+    }
+    //fprintf(fp, "%d\n",in[N-1]);
+    fprintf(fp, "%f\n",(double)in[N-1]/(double)SAMP_MAX);
+    
+    fclose(fp);
+    return 0;
+}
+
+static int printMat2(char *filename, size_t *in, size_t N){
+    FILE *fp;
+
+    if (! (fp = fopen(filename, "a"))){
+        printf("Unable to open %s\n",filename);
+        return 1;
+    }
+
+    for (size_t i = 0; i < N-1; i++){
+        fprintf(fp, "%zu,",in[i]);
+    }
+    fprintf(fp, "%zu\n",in[N-1]);
+    
+    fclose(fp);
     return 0;
 }
