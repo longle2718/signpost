@@ -1,4 +1,4 @@
-# Fixed-point ridge tracker in C
+# Fixed-point ridge tracker for acoustic event detection in C
 
 ## Quick start
 ```
