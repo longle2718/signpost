@@ -1,8 +1,8 @@
 # Universal acoustic event detection app
-The first step into any audio processing chain:
+The first step into any audio processing chain.
 
 Detect a large class of "acoustic events" (bird calls, gunshots, broken glasses, etc.) from noisy background.
-Specific classification are reserved for downstream.
+Further classifications are reserved for downstream processing.
 
 ## Quick start
 1. Plug the Audio Module into the `Module 1` slot
@@ -22,4 +22,4 @@ Specific classification are reserved for downstream.
 * Fixed-point FFT: git clone https://github.com/longle2718/kiss_fft
 * Fixed-point log: git clone https://github.com/dmoulding/log2fix
 * Ridge tracker: git clone https://bitbucket.org/longle1/gcwa
-..* Fixed point implementation under gcwa/c/
+  * Fixed point implementation under gcwa/c/
