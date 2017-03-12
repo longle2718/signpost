@@ -22,4 +22,4 @@ Further classifications are reserved for downstream processing.
 * Fixed-point FFT: git clone https://github.com/longle2718/kiss_fft
 * Fixed-point log: git clone https://github.com/dmoulding/log2fix
 * Ridge tracker: git clone https://bitbucket.org/longle1/gcwa
-  * Fixed point implementation under gcwa/c/
+  * Fixed-point implementation in C is under gcwa/c/
